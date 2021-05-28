@@ -15,8 +15,8 @@
   }
 #grid{
   display: grid;
-  grid-template-columns:  repeat(20, 14px);
-  grid-template-rows:  repeat(20, 14px);
+  grid-template-columns:  repeat(20, 12px);
+  grid-template-rows:  repeat(20, 12px);
 }
 .tile{
   background-color: aqua;
@@ -126,10 +126,10 @@ function loop(){
 
 function startGame(){
   clearInterval(intervallHandler);
-  snakePosition = Math.floor(Math.random()*size*size);
+  snakePosition = Math.floor(Math.random()*size*size/2);//start in the upper area
   snake = [snakePosition];
   foodPosition = Math.floor(Math.random()*size*size);
-  dir =0;
+  dir =size;//moving down
   intervallHandler =  setInterval(loop, 1000/speed);
 }
 
@@ -140,17 +140,13 @@ function stopGame(){
 
 document.addEventListener("keyup", (event)=>{
   switch (event.key) {
-    case "ArrowLeft":
-      left();
+    case "ArrowLeft": left();
       break;
-    case "ArrowRight":
-      right();
+    case "ArrowRight": right();
         break;
-    case "ArrowUp":
-      up();
+    case "ArrowUp":  up();
         break;
-    case "ArrowDown":
-      down();
+    case "ArrowDown": down();
         break;
 }
 })
