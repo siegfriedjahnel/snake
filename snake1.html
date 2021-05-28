@@ -1,161 +1,186 @@
 <!doctype html>
 <html lang="de">
+
 <head>
-<meta charset="utf-8">
-<title>simple snake game</title>
-<meta name="description" content="">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-  body{
-    margin: 0px;
-    font-family: Arial, Helvetica, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-#grid{
-  display: grid;
-  grid-template-columns:  repeat(20, 12px);
-  grid-template-rows:  repeat(20, 12px);
-}
-.tile{
-  background-color: aqua;
-}
-.red{
-  background-color: red;
-}
-.green{
-  background-color: green;
-}
-#controller{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  
-}
-.btnGC{
-  font-size: 1.2rem;
-  font-weight: 800;
-  margin:0.5rem;
-  min-width: 64px;
-}
-h3{
-  background-color: coral;
-  padding: 4px;
-}
-.seg{
-  padding: 4px;
-  display:flex;
-  flex-direction: row;
-  justify-content: space-around;
-}
-</style>
+  <meta charset="utf-8">
+  <title>simple snake game</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0px;
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(20, 12px);
+      grid-template-rows: repeat(20, 12px);
+      gap: 1px 1px;
+    }
+
+    .tile {
+      background-color: aqua;
+    }
+
+    .red {
+      background-color: red;
+    }
+
+    .green {
+      background-color: green;
+    }
+
+    #controller {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr 1fr;
+      gap: 16px 24px;
+      grid-template-areas:
+        ". btnUp ."
+        "btnLeft btnStart btnRight"
+        ". btnDown .";
+    }
+
+    #controller button {
+      height: 48px;
+      width: 48px;
+    }
+
+    .btnUp {
+      grid-area: btnUp;
+    }
+
+    .btnLeft {
+      grid-area: btnLeft;
+    }
+
+    .btnDown {
+      grid-area: btnDown;
+    }
+
+    .btnStart {
+      grid-area: btnStart;
+    }
+
+    .btnRight {
+      grid-area: btnRight;
+    }
+  </style>
 </head>
+
 <body>
-    <h3>My very simple Snake Game</h3>
-    <div id="grid" class="crid"></div>
-    <div id="controller">
-      <div class="seg"><button class="btnGC" id="up" onclick="up()">&ShortUpArrow;</button></div>
-      <div class="seg"><button class="btnGC" id="left" onclick="left()">&ShortLeftArrow;</button>
-         <button onclick="startGame()">new game</button>
-         <button class="btnGC" id="right" onclick="right()">&ShortRightArrow;</button></div>
-      <div class="seg"><button class="btnGC" id="down" onclick="down()">&ShortDownArrow;</button></div>
-    </div>
+  <div> you have <span id="snakeCounter">0</span> Snake-Points</div>
+  <div id="grid" class="crid"></div>
+  <div id="controller">
+    <button class="btnUp" id="up" onclick="up()">&ShortUpArrow;</button>
+    <button class="btnLeft" id="left" onclick="left()">&ShortLeftArrow;</button>
+    <button class="btnStart" onclick="startGame()">new game</button>
+    <button class="btnRight" id="right" onclick="right()">&ShortRightArrow;</button>
+    <button class="btnDown" id="down" onclick="down()">&ShortDownArrow;</button>
+  </div>
 </body>
-  <script>
-const grid = document.getElementById("grid");
-let tiles =[];
-const size = 20;
-let snake =[];
-let snakePosition;
-let foodPosition;
-let dir;
-let intervallHandler;
-let speed =2;
-
-function drawGrid(){
-  grid.innerHTML="";
-  tiles=[];
-  for(let i = 0; i<size*size;i++){
-    let tile = document.createElement("div");
-    tiles[i]=tile;
-    tile.className="tile";
-    grid.appendChild(tile);
+<script>
+  const grid = document.getElementById("grid");
+  let tiles = [];
+  const size = 20;
+  let snake = [];
+  let snakePosition;
+  let foodPosition;
+  let dir;
+  let intervallHandler;
+  let speed = 2;
+  let snakeCounter = 0;//your credits
+  function drawGrid() {
+    grid.innerHTML = "";
+    tiles = [];
+    for (let i = 0; i < size * size; i++) {
+      let tile = document.createElement("div");
+      tiles[i] = tile;
+      tile.className = "tile";
+      grid.appendChild(tile);
+    }
   }
-}
 
-function drawSnake(){
-  for(let i = 0 ; i<snake.length; i++){
-    let t = snake[i]
-    tiles[t].className = "red";
+  function drawSnake() {
+    for (let i = 0; i < snake.length; i++) {
+      let t = snake[i]
+      tiles[t].className = "red";
+    }
   }
-}
 
-function isSnakeInRange(){
-  if(
-    (dir==1 && snakePosition%size==0)||
-    (dir==-1 && (snakePosition+1)%size==0)||
-    (snakePosition<0)||
-    (snakePosition>size*size-1)) {
-    return false
-    }else{
+  function isSnakeInRange() {
+    if (
+      (dir == 1 && snakePosition % size == 0) ||
+      (dir == -1 && (snakePosition + 1) % size == 0) ||
+      (snakePosition < 0) ||
+      (snakePosition > size * size - 1)) {
+      return false
+    } else {
       return true;
     }
-}
-
-function loop(){
-  drawGrid();
-  tiles[foodPosition].className="green"; //draw food
-  let newSnakePosition = snakePosition + dir;
-  if(snake.includes(newSnakePosition)&& snake.length>1) stopGame();
-  snake.unshift(newSnakePosition);
-  snakePosition=newSnakePosition;
-
-  if(snakePosition == foodPosition){
-    foodPosition = Math.floor(Math.random()*size*size);
-  }else{
-    snake.pop();
   }
-  if(!isSnakeInRange()){
-    stopGame();
-  }else{
-    drawSnake();
-  } 
-  
-}
 
-function startGame(){
-  clearInterval(intervallHandler);
-  snakePosition = Math.floor(Math.random()*size*size/2);//start in the upper area
-  snake = [snakePosition];
-  foodPosition = Math.floor(Math.random()*size*size);
-  dir =size;//moving down
-  intervallHandler =  setInterval(loop, 1000/speed);
-}
+  function loop() {
+    document.getElementById("snakeCounter").innerHTML = snakeCounter;
+    drawGrid();
+    tiles[foodPosition].className = "green"; //draw food
+    let newSnakePosition = snakePosition + dir;
+    if (snake.includes(newSnakePosition) && snake.length > 1) stopGame();//snake bytes itself
+    snake.unshift(newSnakePosition);
+    snakePosition = newSnakePosition;
 
-function stopGame(){
-  clearInterval(intervallHandler);
-  alert("Game over");
-}
+    if (snakePosition == foodPosition) {//snake is eating
+      foodPosition = Math.floor(Math.random() * size * size);//new foodposition
+      snakeCounter++;
+    } else {
+      snake.pop();
+    }
+    if (!isSnakeInRange()) {
+      stopGame();
+    } else {
+      drawSnake();
+    }
 
-document.addEventListener("keyup", (event)=>{
-  switch (event.key) {
-    case "ArrowLeft": left();
-      break;
-    case "ArrowRight": right();
+  }
+
+  function startGame() {
+    clearInterval(intervallHandler);
+    snakePosition = Math.floor(Math.random() * size * size / 2);//start in the upper half of the grid
+    snake = [snakePosition];
+    foodPosition = Math.floor(Math.random() * size * size);
+    dir = size;//moving down
+    intervallHandler = setInterval(loop, 1000 / speed);
+  }
+
+  function stopGame() {
+    clearInterval(intervallHandler);
+    alert("Game over");
+  }
+
+  document.addEventListener("keyup", (event) => {
+    switch (event.key) {
+      case "ArrowLeft": left();
         break;
-    case "ArrowUp":  up();
+      case "ArrowRight": right();
         break;
-    case "ArrowDown": down();
+      case "ArrowUp": up();
         break;
-}
-})
+      case "ArrowDown": down();
+        break;
+    }
+  })
 
-const up = ()=>{if(dir!=size) dir=-size};
-const down = ()=>{if(dir!=-size) dir=size};
-const left = ()=>{if(dir!=1) dir=-1};
-const right = ()=>{if(dir!=-1) dir=1};
+  const up = () => { if (dir != size) dir = -size };
+  const down = () => { if (dir != -size) dir = size };
+  const left = () => { if (dir != 1) dir = -1 };
+  const right = () => { if (dir != -1) dir = 1 };
 
-drawGrid();
+  drawGrid();
 </script>
+
 </html>
